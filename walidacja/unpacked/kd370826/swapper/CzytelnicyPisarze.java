@@ -1,8 +1,6 @@
 package swapper;
 
-
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class CzytelnicyPisarze {
 
@@ -12,7 +10,8 @@ public class CzytelnicyPisarze {
     private static final int CZYTANIE = 10;
     private static final int PISANIE = 4;
 
-    private static final int CZAS_SNU = 500;
+    private static final int CZAS_CZYTANIA = 200;
+    private static final int CZAS_PISANIA = 100;
 
     private enum MUTEX {
         M
@@ -23,10 +22,7 @@ public class CzytelnicyPisarze {
     private static Swapper<Integer> czytelnicy = new Swapper<>();
     private static Swapper<Integer> pisarze = new Swapper<>();
 
-    private static AtomicInteger ileCzytelnicy = new AtomicInteger(0);
-    private static AtomicInteger ilePisarze = new AtomicInteger(0);
-
-    private static Set<Character> set = new TreeSet<>();
+    private static List<Character> bufor = new ArrayList<>();
 
     static {
         try {
@@ -37,9 +33,9 @@ public class CzytelnicyPisarze {
         }
     }
 
-    private static void śpij() {
+    private static void śpij(long czas) {
         try {
-            Thread.sleep(CZAS_SNU);
+            Thread.sleep(czas);
         } catch (InterruptedException e) {
             Thread t = Thread.currentThread();
             t.interrupt();
@@ -48,17 +44,17 @@ public class CzytelnicyPisarze {
     }
 
     private static void czytanie(int nr) {
-        System.out.println("\nCzytam (Czytelnik" + nr + ")... " + set + "\nRazem ze mną pisze: " + iluPisze +
-                ", czyta: " + (iluCzyta - 1));
-        śpij();
+        System.out.println("\nCzytam (" + nr + ")... " + bufor + "\nRazem ze mną pisze: " +
+                iluPisze + " pisarzy, czyta: " + (iluCzyta - 1) + " czytelników");
+        śpij(CZAS_CZYTANIA);
         System.out.println("Skończyłem czytać (" + nr + ").");
     }
 
     private static void pisanie(int nr, char next) {
-        System.out.println("\nPiszę (Pisarz" + nr + ")... " + next +
-                "\nRazem ze mną pisze: " + (iluPisze - 1) + ", czyta: " + iluCzyta);
-        set.add(next);
-        śpij();
+        System.out.println("\nPiszę (" + nr + ")... " + next + "\nRazem ze mną pisze: " +
+                (iluPisze - 1) + " pisarzy, czyta: " + iluCzyta + " czytelników");
+        bufor.add(next);
+        śpij(CZAS_PISANIA);
         System.out.println("Skończyłem pisać (" + nr + ").");
     }
 
@@ -78,12 +74,12 @@ public class CzytelnicyPisarze {
                     if (iluPisze + czekaPis > 0) {
                         ++czekaCzyt;
                         mutex.swap(Collections.emptySet(), Collections.singleton(MUTEX.M));
-                        czytelnicy.swap(Collections.singleton(ileCzytelnicy.decrementAndGet()), Collections.emptySet());
+                        czytelnicy.swap(Collections.singleton(czekaCzyt), Collections.emptySet());
                         --czekaCzyt;
                     }
                     ++iluCzyta;
                     if (czekaCzyt > 0) {
-                        czytelnicy.swap(Collections.emptySet(), Collections.singleton(ileCzytelnicy.getAndIncrement()));
+                        czytelnicy.swap(Collections.emptySet(), Collections.singleton(czekaCzyt));
                     } else {
                         mutex.swap(Collections.emptySet(), Collections.singleton(MUTEX.M));
                     }
@@ -93,7 +89,7 @@ public class CzytelnicyPisarze {
                     mutex.swap(Collections.singleton(MUTEX.M), Collections.emptySet());
                     --iluCzyta;
                     if (iluCzyta == 0 && czekaPis > 0) {
-                        pisarze.swap(Collections.emptySet(), Collections.singleton(ilePisarze.getAndIncrement()));
+                        pisarze.swap(Collections.emptySet(), Collections.singleton(czekaPis));
                     } else {
                         mutex.swap(Collections.emptySet(), Collections.singleton(MUTEX.M));
                     }
@@ -122,7 +118,7 @@ public class CzytelnicyPisarze {
                     if (iluPisze + iluCzyta > 0) {
                         ++czekaPis;
                         mutex.swap(Collections.emptySet(), Collections.singleton(MUTEX.M));
-                        pisarze.swap(Collections.singleton(ilePisarze.decrementAndGet()), Collections.emptySet());
+                        pisarze.swap(Collections.singleton(czekaPis), Collections.emptySet());
                         --czekaPis;
                     }
                     ++iluPisze;
@@ -136,9 +132,9 @@ public class CzytelnicyPisarze {
                     mutex.swap(Collections.singleton(MUTEX.M), Collections.emptySet());
                     --iluPisze;
                     if (czekaCzyt > 0) {
-                        czytelnicy.swap(Collections.emptySet(), Collections.singleton(ileCzytelnicy.getAndIncrement()));
+                        czytelnicy.swap(Collections.emptySet(), Collections.singleton(czekaCzyt));
                     } else if (czekaPis > 0) {
-                        pisarze.swap(Collections.emptySet(), Collections.singleton(ilePisarze.getAndIncrement()));
+                        pisarze.swap(Collections.emptySet(), Collections.singleton(czekaPis));
                     } else {
                         mutex.swap(Collections.emptySet(), Collections.singleton(MUTEX.M));
                     }
@@ -173,5 +169,4 @@ public class CzytelnicyPisarze {
 
 
     }
-
 }

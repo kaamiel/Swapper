@@ -92,24 +92,20 @@ public class ProducenciKonsumenci {
                 System.err.println(t.getName() + " przerwany");
             }
         }
-
     }
 
     public static void main(String args[]) {
         List<Thread> wątki = new ArrayList<>();
         for (int i = 0; i < DODATNI; ++i) {
-            Runnable r = new Producent(1);
-            Thread t = new Thread(r, "Dodatni" + i);
+            Thread t = new Thread(new Producent(1), "Dodatni" + i);
             wątki.add(t);
         }
         for (int i = 0; i < UJEMNI; ++i) {
-            Runnable r = new Producent(-1);
-            Thread t = new Thread(r, "Ujemny" + i);
+            Thread t = new Thread(new Producent(-1), "Ujemny" + i);
             wątki.add(t);
         }
         for (int i = 0; i < KONSUMENCI; ++i) {
-            Runnable r = new Konsument();
-            Thread t = new Thread(r, "Konsument" + i);
+            Thread t = new Thread(new Konsument(), "Konsument" + i);
             wątki.add(t);
         }
         for (Thread t : wątki) {
