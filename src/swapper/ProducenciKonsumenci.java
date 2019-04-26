@@ -92,6 +92,7 @@ public class ProducenciKonsumenci {
                 System.err.println(t.getName() + " przerwany");
             }
         }
+
     }
 
     public static void main(String args[]) {
