@@ -78,7 +78,7 @@ Polecenie
 ```
 sh validate.sh ab123456
 ```
-przeprowadzi walidację rozwiązania studenta o identyfikatorze ab123456. Komunikat `OK` poinformuje o sukcesie.
+przeprowadzi walidację rozwiązania studenta o identyfikatorze `ab123456`. Komunikat `OK` poinformuje o sukcesie.
 
 Rozwiązania, które pomyślnie przejdą walidację, zostaną dopuszczone do testów poprawności.
 
